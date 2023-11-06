@@ -1,0 +1,14 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>hoy</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-list>
+    <ion-item *ngFor="let tarea of tareasDeHoy">
+      <ion-label>{{tarea.titulo}}</ion-label>
+      <ion-label>{{tarea.descripcion}}</ion-label>
+    </ion-item>
+  </ion-list>
+  </ion-content>

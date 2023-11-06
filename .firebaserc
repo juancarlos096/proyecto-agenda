@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "app-agenda-7865c"
+  },
+  "targets": {
+    "app-agenda-7865c": {
+      "hosting": {
+        "app": [
+          "app-agenda-7865c"
+        ]
+      }
+    }
+  }
+}
