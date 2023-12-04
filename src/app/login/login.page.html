@@ -1,0 +1,41 @@
+<ion-content class="ion-padding">
+  <ion-header [translucent]="true">
+  </ion-header>
+
+  <div id="container" class="ion-padding">
+
+    <ion-fab id="botong" >
+      <ion-fab-button  color="danger" (click)="onClick()">
+        <ion-icon name="logo-google"></ion-icon>
+      </ion-fab-button>
+    </ion-fab>
+
+
+    
+    <div id="or">
+      <p>-OR-</p>
+    </div>
+
+    <form [formGroup]="formLogin" (ngSubmit)="onSubmit()">
+      <ion-list id="list">
+        <ion-item color="dark">
+          <ion-label position="floating">Correo electrónico</ion-label>
+          <ion-input id="inp" type="email" formControlName="email"></ion-input>
+        </ion-item>
+        <ion-item color="dark">
+          <ion-label position="floating">Contraseña</ion-label>
+          <ion-input id="inp" type="password" formControlName="password"></ion-input>
+        </ion-item>
+
+
+        <ion-buttons>
+          <ion-button class="centered-button" id="boton" expand="full" type="submit">Iniciar Sesión</ion-button>
+        </ion-buttons>
+         <p id="fin">¿No tienes una cuenta? <a [routerLink]="['/registro']" style="margin-left: 5px;">Regístrate</a></p>
+      </ion-list>
+
+    
+    </form>
+   
+  </div>
+</ion-content>

@@ -1,18 +1,55 @@
 <ion-header [translucent]="true">
-  <ion-toolbar>
+  <ion-toolbar id="tb">
     <ion-title>
-      Blank
+      <div id="usuario">
+       <a id="enlacePerfil" >
+          <p *ngIf="correoUsuario">{{ correoUsuario }}</p>
+        </a>
+        <ion-buttons>
+          <ion-button  (click)="logout()"><ion-icon id="ilogout" name="log-out-outline"></ion-icon></ion-button>
+        </ion-buttons>
+      </div>
     </ion-title>
   </ion-toolbar>
 </ion-header>
+  
+<ion-content display="flex" id="contenedor" color="secundary">
+  <div id="klk">
+    <ion-card id="card" routerLink="/tareas" color="danger">
+      <ion-card-content class="content" color="danger">
+        <div class="icono-titulo">
+          <ion-icon class="icono" name="reader-outline"></ion-icon>
+          <p class="titulo">Tareas</p>
+        </div>
+      </ion-card-content>
+    </ion-card>
 
-<ion-content [fullscreen]="true">
- 
+    <ion-card id="card" routerLink="/hoy"  color="danger">
+      <ion-card-content class="content">
+        <div class="icono-titulo">
+          <ion-icon class="icono" name="sunny"></ion-icon>
+          <p class="titulo">Hoy</p>
+        </div>
+      </ion-card-content>
+    </ion-card>
 
-<a href="/tareas">a</a>
-<br>
-<a href="/importante">b</a>
-<br>
-<a href="/hoy">c</a>
+    <ion-card id="card" routerLink="/importante"  color="danger">
+      <ion-card-content class="content">
+        <div class="icono-titulo">
+          <ion-icon class="icono" name="star-outline"></ion-icon>
+          <p class="titulo">Importante</p>
+        </div>
+      </ion-card-content>
+    </ion-card>
 
+    <ion-card id="card" routerLink="/historial"  color="danger">
+      <ion-card-content class="content">
+        <div class="icono-titulo">
+          <ion-icon class="icono" name="time-outline"></ion-icon>
+          <p class="titulo">Historial</p>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
 </ion-content>
+

@@ -1,27 +1,109 @@
-#container {
-  text-align: center;
 
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
+#hoy {
+  font-family: 'Roboto-Regular', sans-serif;
+  height: 60px;
+  font-size: 18px;
+  width: 100%;
+  display: flex;
+  margin-right: 100px;
+align-items: center;
+
+color: white;
 }
 
-#container strong {
-  font-size: 20px;
-  line-height: 26px;
+
+
+
+ion-content{
+  width: 100%;
+  height: 100%;
 }
 
-#container p {
+#blist{
+  font-family: 'Roboto-Regular', sans-serif;
   font-size: 16px;
-  line-height: 22px;
-
-  color: #8c8c8c;
-
-  margin: 0;
+  
+}
+#ilist{
+  font-size: 25px;
+ margin-right: 3px;
+padding-top: 10px;
 }
 
-#container a {
+#ilogout{
+
+  font-size: 30px;
+  color: rgb(214, 3, 3);
+ 
+}
+#usuario{
+  display: flex;
+  align-items: center; /* Centra verticalmente los elementos en el div */
+  
+}
+#enlacePerfil {
+  margin-right: 114px; /* Agrega espacio entre el nombre de usuario y el botón de cierre de sesión */
   text-decoration: none;
+  color: white;
+  font-size: 11px;
+}
+#logoutButton{
+  background-color: transparent;
+  padding-top: 3px;
+}
+
+ion-content{
+  background-color:rgb(20, 20, 20);
+  --background: none;
+  color: white;
+}
+#tb{
+  background-color: #252525 ;
+  --background: none;
+  color: white;
+
+}
+#klk {
+  display: flex;
+  justify-content: center; /* Centra horizontalmente los elementos hijos */
+  align-items: center; /* Centra verticalmente los elementos hijos */
+  height: 100vh; /* Ajusta la altura al 100% del viewport */
+  flex-direction: column; /* Cambia la dirección a columna */
+}
+
+#card {
+  width: 70%;
+  height: 40%;
+  margin: 10px; /* Agrega un margen entre las tarjetas */
+  display: flex;
+  justify-content: center; /* Centra horizontalmente los elementos hijos */
+  align-items: center; /* Centra verticalmente los elementos hijos */
+  border-radius: 20px;
+}
+
+.content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.icono-titulo {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centra horizontalmente los elementos */
+  justify-content: center; /* Centra verticalmente los elementos */
+  height: 100%;
+}
+
+.icono {
+  font-size: 50px;
+  color: rgb(255, 115, 0);
+}
+
+.titulo {
+  font-size: 20px;
+  color: rgb(126, 126, 126);
+  text-align: center;
+  margin-top: 10px; /* Ajusta el espacio entre el ícono y el título */
 }

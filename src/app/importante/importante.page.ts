@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Tareas } from '../interfaces/tareas.interface';
 import { TareasService } from '../services/tareas.services';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-importante',
@@ -8,15 +9,262 @@ import { TareasService } from '../services/tareas.services';
   styleUrls: ['./importante.page.scss'],
 })
 export class ImportantePage implements OnInit {
-  tareasImportantes: Tareas[] = []; // Inicializa la propiedad tareasImportantes
+  formulario: FormGroup;
+  tareas: Tareas[] = [];
+  tareaSeleccionada: any;
+  mostrarFormulario: boolean = false; // Variable para controlar la visualización del formulario
+  estado: boolean = false; // Tu booleano
+  tareasMostradas: Tareas[] = []; // Lista de tareas a mostrar
 
-  constructor(private tareasService: TareasService) {} // Inyecta el servicio
-
-  ngOnInit() {
-    this.getTareasImportantes(); // Llama a la función para obtener las tareas importantes
+  constructor(private fb: FormBuilder, private tareasService: TareasService) {
+    this.formulario = this.fb.group({
+      titulo: ['', Validators.required],
+      descripcion: [''],
+      importante: [true],
+      fechaLimite: [''],
+      repetir: [false],
+      recordarme: [false],
+      tareaId: [''] // Asegúrate de tener este campo
+    });
   }
 
-  async getTareasImportantes() {
-    this.tareasImportantes = await this.tareasService.getTareasImportantes(); // Obtén las tareas importantes
+  async ngOnInit(): Promise<void> {
+    try {
+      let todasLasTareas = await this.tareasService.getAllTareas();
+  
+      // Filtrar las tareas para mostrar solo las importantes
+      this.tareas = todasLasTareas.filter(tarea => tarea.importante);
+    } catch (error) {
+      console.error('Error al obtener las tareas:', error);
+      // Manejar el error según sea necesario
+    }
   }
+  
+  
+  toggleFormulario() {
+    this.mostrarFormulario = !this.mostrarFormulario;
+  }
+  toggleDetalle(tarea: any) {
+    // Al hacer clic en el botón, se cambia el estado 'mostrarDetalle' de la tarea
+    tarea.mostrarDetalle = !tarea.mostrarDetalle;
+
+    // Si deseas que solo un detalle se muestre a la vez, puedes iterar por las tareas y cerrar las demás
+    this.tareas.forEach(t => {
+      if (t !== tarea) {
+        t.mostrarDetalle = false;
+      }
+
+      
+    });
+  }
+  async onSubmit() {
+    if (this.formulario.valid) {
+      const formData = { ...this.formulario.value, estado: false }; // Agrega el campo 'estado'
+  
+      // Convierte la fecha ingresada a un objeto Date si es necesario
+      if (formData.fechaLimite) {
+        formData.fechaLimite = new Date(formData.fechaLimite);
+      }
+  
+      // Agrega la tarea a la base de datos y obtén el ID generado
+      const tareaConId = await this.tareasService.addTareas(formData);
+  
+      // Verificar si la tarea tiene un ID válido antes de agregarla a la lista
+      if (tareaConId && tareaConId.id) {
+        this.tareas.push(tareaConId); // Agregar tarea con ID válido a la lista
+      } else {
+        console.error('La tarea no tiene un ID válido');
+        // Manejo de error o lógica adicional si la tarea no tiene un ID válido
+      }
+    }
+  }
+  
+  async onDeleteTarea(tareaId: string) {
+    try {
+      const tareaIndex = this.tareas.findIndex(tarea => tarea.id === tareaId);
+  
+      if (tareaIndex !== -1) {
+        await this.tareasService.deleteTarea(tareaId); // Elimina la tarea de la base de datos
+        this.tareas = this.tareas.filter(tarea => tarea.id !== tareaId); // Actualiza la lista local excluyendo la tarea eliminada
+      } else {
+        console.error('El ID de la tarea a eliminar no se encuentra en la lista actual de tareas');
+        // Manejo de error o lógica adicional si el ID de la tarea no se encuentra en la lista de tareas
+      }
+    } catch (error) {
+      console.error('Error al eliminar la tarea:', error);
+    }
+  }
+  
+  
+  
+  async getTodasLasTareas() {
+    try {
+      this.tareas = await this.tareasService.getAllTareas();
+      this.tareas.forEach(tarea => {
+        tarea.mostrarDetalle = false; // Inicializa el valor de mostrarDetalle para cada tarea
+      });
+      console.log(this.tareas);
+    } catch (error) {
+      console.error('Error al obtener las tareas:', error);
+    }
+  }
+
+  formatFecha(event: any) {
+    const inputDate = event.target.value; // Obtiene la fecha ingresada por el usuario
+    const [day, month, year] = inputDate.split('-'); // Divide la fecha en año, mes y día
+    const formattedDate = `${year}-${month}-${day}`; // Reordena la fecha en formato yyyy-MM-dd
+    this.formulario.patchValue({ fechaLimite: formattedDate }); // Actualiza el valor en el formulario
+  }
+  
+  
+  
+  
+
+  cargarDatosEnFormulario(tarea: Tareas) {
+    this.tareaSeleccionada = tarea; // Almacena la tarea seleccionada para editar
+    this.formulario.patchValue({
+      titulo: tarea.titulo,
+      descripcion: tarea.descripcion,
+      importante: tarea.importante,
+      fechaLimite: this.formatFechaLimite(tarea.fechaLimite),
+      repetir: tarea.repetir,
+      recordarme: tarea.recordarme,
+      tareaId: tarea.id
+    });
+  }
+  
+  expandirTarea(tarea: Tareas) {
+    this.tareaSeleccionada = this.tareaSeleccionada === tarea ? null : tarea;
+    this.cargarDatosEnFormulario(tarea); // Llamar a cargarDatosEnFormulario al expandir la tarea
+  }
+  
+
+
+
+cambiarImportante(event: Event) {
+  const esImportante = (event.target as HTMLInputElement).checked;
+  this.formulario.get('importante')?.setValue(esImportante);
+
+  // Actualizar en la base de datos y la tarea seleccionada
+  if (this.tareaSeleccionada) {
+    this.tareaSeleccionada.importante = esImportante; // Actualiza el valor localmente
+
+    // Actualiza el valor en la base de datos utilizando el servicio
+    this.tareasService.actualizarTarea(this.tareaSeleccionada.id, { importante: esImportante })
+      .then(() => console.log('Importante actualizado correctamente en la base de datos'))
+      .catch(error => console.error('Error al actualizar importante en la base de datos:', error));
+  }
+}
+
+formatFechaLimite(fechaLimite: any): string {
+  if (fechaLimite && fechaLimite.toDate) {
+    const date = fechaLimite.toDate() as Date;
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  } else {
+    return ''; // O cualquier otro valor predeterminado si la fecha no es válida
+  }
+}
+
+
+
+
+cambiarRecordarme(event: Event) {
+  const recordarme = (event.target as HTMLInputElement).checked;
+  this.formulario.get('recordarme')?.setValue(recordarme);
+
+  // Actualizar en la base de datos
+  if (this.tareaSeleccionada) {
+    this.tareaSeleccionada.recordarme = recordarme; // Actualiza el valor localmente
+
+    // Actualiza el valor en la base de datos utilizando el servicio
+    this.tareasService.actualizarTarea(this.tareaSeleccionada.id, { recordarme })
+      .then(() => console.log('Campo "Recordarme" actualizado correctamente en la base de datos'))
+      .catch(error => console.error('Error al actualizar el campo "Recordarme" en la base de datos:', error));
+  }
+}
+
+
+
+
+async editarTarea(tarea: Tareas) {
+  this.tareaSeleccionada = tarea; // Establecer la tarea seleccionada
+
+  if (this.formulario.valid && this.tareaSeleccionada) {
+    const formData = { ...this.formulario.value, estado: this.tareaSeleccionada.estado }; // Incluye 'estado'
+    let cambios: Partial<Tareas>; // Declarar 'cambios' aquí
+
+    cambios = {
+      titulo: formData.titulo,
+      descripcion: formData.descripcion,
+      importante: formData.importante, // Mantener el estado de importancia
+      fechaLimite: formData.fechaLimite,
+      repetir: formData.repetir,
+      recordarme: formData.recordarme
+      // Añadir otros campos que se deseen actualizar
+    };
+
+    try {
+      if (this.tareaSeleccionada) {
+        await this.tareasService.actualizarTarea(this.tareaSeleccionada.id, cambios);
+        console.log('Tarea actualizada correctamente en la base de datos');
+
+        // Refrescar la lista de tareas obteniendo las actualizadas con el filtro de tareas importantes
+        this.tareas = await this.tareasService.getTareasImportantes(); // Ajusta el método según tu servicio
+
+        // Restablecer el formulario y la tarea seleccionada después de editar
+        this.formulario.reset();
+        this.tareaSeleccionada = null;
+      } else {
+        console.log('No hay tarea seleccionada');
+      }
+    } catch (error) {
+      console.error('Error al actualizar la tarea en la base de datos:', error);
+      // Manejo de errores si hay problemas al actualizar la tarea
+    }
+  } else {
+    console.log('Formulario no válido o tarea seleccionada no encontrada');
+    console.log('Formulario válido:', this.formulario.valid);
+  }
+}
+
+async obtenerTareasMostradas() {
+  try {
+    this.tareasMostradas = await this.tareasService.getTareasImportantes();
+  } catch (error) {
+    console.error('Error al obtener las tareas:', error);
+  }
+}
+
+async cambiarEstado(tareaId: string) {
+  try {
+    const tareaIndex = this.tareas.findIndex(tarea => tarea.id === tareaId);
+    if (tareaIndex !== -1) {
+      const tarea = this.tareas[tareaIndex];
+      this.estado = !tarea.estado; // Cambia el valor del estado localmente
+
+      await this.tareasService.actualizarEstadoTarea(tareaId, { estado: this.estado });
+      console.log('Estado de la tarea actualizado en la base de datos');
+
+      // Filtra la lista de tareas para quitar la tarea con el ID correspondiente si el estado es true
+      if (this.estado) {
+        this.tareas = this.tareas.filter(t => t.id !== tareaId);
+      }
+    }
+  } catch (error) {
+    console.error('Error al actualizar el estado de la tarea en la base de datos:', error);
+  }
+}
+
+actualizarTareasMostradas(tareaId: string) {
+  // Filtra la lista para quitar la tarea con el ID correspondiente si el estado es true
+  if (this.estado) {
+    const tareaIndex = this.tareasMostradas.findIndex(tarea => tarea.id === tareaId);
+    if (tareaIndex !== -1) {
+      this.tareasMostradas.splice(tareaIndex, 1);
+    }
+  }
+}
 }

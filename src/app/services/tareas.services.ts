@@ -1,7 +1,7 @@
 
 import { Injectable } from '@angular/core';
 
-import { Firestore, Timestamp, getDocs } from '@angular/fire/firestore';
+import { DocumentData, DocumentReference, Firestore, Timestamp, getDocs, updateDoc, doc, getDoc, setDoc, deleteDoc} from '@angular/fire/firestore';
 import { addDoc, collection } from '@angular/fire/firestore'; // Import from @angular/fire/firestore instead of firebase/firestore
 import { Tareas } from '../interfaces/tareas.interface';
 
@@ -10,29 +10,27 @@ import { Tareas } from '../interfaces/tareas.interface';
 providedIn: 'root'
 })
 export class TareasService {
+tareas: any;
+getTarea(tareaId: any) {
+  throw new Error('Method not implemented.');
+}
 
 constructor(private firestore: Firestore) {}
-addTareas(tareas: Tareas) {
+
+async addTareas(tareas: Tareas): Promise<Tareas> {
+  try {
     const tareasRef = collection(this.firestore, 'tareas');
-    return addDoc(tareasRef, tareas);
+    const docRef = await addDoc(tareasRef, { ...tareas, estado: false }); // Incluye 'estado'
+    const tareaId = docRef.id;
+    return { ...tareas, id: tareaId };
+  } catch (error) {
+    console.error('Error al agregar la tarea:', error);
+    throw error;
   }
-
-  async getAllTareas() {
-    const tareasRef = collection(this.firestore, 'tareas');
-    const tareasSnapshot = await getDocs(tareasRef);
-
-    const tareas: Tareas[] = [];
-    tareasSnapshot.forEach((doc) => {
-        tareas.push(doc.data() as Tareas);
-    });
-
-    return tareas;
 }
 
 
-
-
-async getTareasImportantes() {
+async getTareasImportantes(): Promise<Tareas[]> {
   const tareasRef = collection(this.firestore, 'tareas');
   const tareasSnapshot = await getDocs(tareasRef);
 
@@ -40,7 +38,7 @@ async getTareasImportantes() {
 
   tareasSnapshot.forEach((doc) => {
     const tarea = doc.data() as Tareas;
-    if (tarea.importante) {
+    if (tarea.importante && !tarea.estado) {
       tareasImportantes.push(tarea);
     }
   });
@@ -48,33 +46,82 @@ async getTareasImportantes() {
   return tareasImportantes;
 }
 
-async getTareasDeHoy() {
-  const tareasRef = collection(this.firestore, 'tareas');
-  const tareasSnapshot = await getDocs(tareasRef);
 
-  const tareasDeHoy: Tareas[] = [];
+async getTareasDeHoy(): Promise<Tareas[]> {
+  try {
+    const tareasRef = collection(this.firestore, 'tareas');
+    const tareasSnapshot = await getDocs(tareasRef);
 
-  tareasSnapshot.forEach((doc) => {
-    const tarea = doc.data() as Tareas;
-    const fechaLimite = tarea.fechaLimite as Timestamp; // Asegúrate de que sea un Timestamp
+    const tareasDeHoy: Tareas[] = [];
+    const hoy = new Date(); // Obtener la fecha actual
 
-    if (fechaLimite) {
-      // Si fechaLimite no es nulo, realiza la conversión
-      const hoy = new Date(); // Obtiene la fecha y hora local actual
-      const fechaLimiteDate = fechaLimite.toDate(); // Convierte el Timestamp a un objeto Date
+    tareasSnapshot.forEach((doc) => {
+      const tarea = doc.data() as Tareas;
+      const fechaLimite = tarea.fechaLimite as Timestamp;
 
-      // Compara las fechas
-      if (
-        fechaLimiteDate.getDate() === hoy.getDate() &&
-        fechaLimiteDate.getMonth() === hoy.getMonth() &&
-        fechaLimiteDate.getFullYear() === hoy.getFullYear()
-      ) {
-        tareasDeHoy.push(tarea);
+      if (fechaLimite) {
+        const fechaLimiteDate = fechaLimite.toDate();
+        
+        // Compara si la fecha límite es igual al día actual
+        if (
+          fechaLimiteDate.getDate() === hoy.getDate() &&
+          fechaLimiteDate.getMonth() === hoy.getMonth() &&
+          fechaLimiteDate.getFullYear() === hoy.getFullYear()
+        ) {
+          tareasDeHoy.push({ ...tarea, id: doc.id });
+        }
       }
-    }
-  });
+    });
 
-  return tareasDeHoy;
+    return tareasDeHoy;
+  } catch (error) {
+    console.error('Error al obtener las tareas de hoy:', error);
+    throw error;
+  }
+}
+
+async actualizarEstadoTarea(tareaId: string, cambios: Partial<{ estado: boolean }>): Promise<void> {
+  try {
+    const tareaRef = doc(this.firestore, 'tareas', tareaId);
+    await updateDoc(tareaRef, cambios);
+  } catch (error) {
+    console.error('Error al actualizar el estado de la tarea:', error);
+    throw error;
+  }
+}
+
+
+  
+async deleteTarea(id: string): Promise<void> {
+  try {
+    const tareaRef = doc(this.firestore, 'tareas', id);
+    await deleteDoc(tareaRef);
+  } catch (error) {
+    console.error('Error al eliminar la tarea:', error);
+    throw error;
+  }
+}
+
+async getAllTareas(): Promise<Tareas[]> {
+  try {
+    const tareasRef = collection(this.firestore, 'tareas');
+    const tareasSnapshot = await getDocs(tareasRef);
+    return tareasSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }) as Tareas);
+  } catch (error) {
+    console.error('Error al obtener todas las tareas:', error);
+    throw error;
+  }
+}
+
+async actualizarTarea(tareaId: string, cambios: Partial<Tareas>): Promise<void> {
+  try {
+    const tareaRef = doc(this.firestore, 'tareas', tareaId);
+    await updateDoc(tareaRef, { ...cambios }); // Asegúrate de incluir 'estado' si lo cambias
+  } catch (error) {
+    console.error('Error al actualizar la tarea:', error);
+    throw error;
+  }
 }
 
 }
+

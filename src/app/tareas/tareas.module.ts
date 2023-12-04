@@ -16,6 +16,11 @@ import { TareasPage } from './tareas.page';
     IonicModule,
     TareasPageRoutingModule
   ],
-  declarations: [TareasPage]
+  declarations: [TareasPage],
+  providers: [
+   // LocalNotification // Agrega LocalNotifications en los providers del módulo
+  ]
 })
+
+
 export class TareasPageModule {}
