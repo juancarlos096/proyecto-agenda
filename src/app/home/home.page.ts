@@ -8,10 +8,12 @@ import { Router } from '@angular/router';
   styleUrls: ['home.page.scss'],
 })
 export class HomePage {
-  correoUsuario: string='';
-  constructor(private userService: UserService,
+  correoUsuario: string = '';
+
+  constructor(
+    private userService: UserService,
     private router: Router
-    ) {}
+  ) {}
 
   ngOnInit(): void {
     this.userService.getEmail().then(email => {
@@ -23,10 +25,11 @@ export class HomePage {
       }
     });
   }
+
   logout() {
     this.userService.logout()
       .then(() => {
-        this.router.navigate(['/logsign'])
+        this.router.navigate(['/logsign']);
         
         // Cierre de sesión exitoso, puedes redirigir al usuario a otra página si lo deseas.
         // Ejemplo de redirección:
@@ -37,8 +40,4 @@ export class HomePage {
         console.error('Error al cerrar sesión: ', error);
       });
   }
-
-
-
-
 }

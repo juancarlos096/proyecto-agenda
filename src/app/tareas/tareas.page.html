@@ -16,7 +16,7 @@
         <div style="display: flex; align-items: center; justify-content: space-between;">
           <div style="display: flex; align-items: center;">
            
-            <ion-button id="btncompletado" fill="clear" color="danger" (click)="onDeleteTarea(tarea.id)">
+            <ion-button id="btncompletado" fill="clear" color="danger" (click)="cambiarEstado(tarea.id)">
             </ion-button>
 
             <ion-label id="tiucard" style="margin-right: 10px;">{{ tarea.titulo }}</ion-label>
@@ -31,7 +31,7 @@
             <form [formGroup]="formulario" color="dark" >
               <ion-item class="a" color="dark" >
                 <ion-label  position="floating">Título</ion-label>
-                <ion-input type="text" formControlName="titulo" [(ngModel)]="tarea.titulo" color="dark"></ion-input>
+                <ion-input type="text" formControlName="titulo" [(ngModel)]="tarea.titulo" color=""></ion-input>
               </ion-item>
              
  
@@ -42,7 +42,7 @@
             </ion-item>
             <div class="mb-3">
               <label for="fechaLimite" class="form-label">Fecha Límite: </label>
-              <p>{{ formatFechaLimite(tarea.fechaLimite) }}</p>
+              <p style="color: white; font-size: 15px">{{ formatFechaLimite(tarea.fechaLimite) }}</p>
             </div>
             
 <br>
@@ -98,11 +98,11 @@
     <div class="mb-3" id="formulario">
 
       <div>
-      <input type="text" class="form-control" id="titulo" formControlName="titulo" placeholder="Escribe el título de la tarea">
+      <input  style="color: rgb(95, 95, 95);" type="text" class="form-control" id="titulo" formControlName="titulo" placeholder="Escribe el título de la tarea">
       </div>
         
       <div class="mb-3" id="descripcion">
-      <textarea class="form-control" id="descripcion" formControlName="descripcion" rows="4" placeholder="Escribe una descripción de la tarea"></textarea>
+      <textarea style="color: rgb(95, 95, 95);" class="form-control" id="descripcion" formControlName="descripcion" rows="4" placeholder="Escribe una descripción de la tarea"></textarea>
       </div>
 
       <div class="mb-3">
@@ -122,13 +122,14 @@
       Recordarme
     </label>
     
-  <ion-item *ngIf="formulario.get('recordarme')?.value">
+  <ion-item *ngIf="formulario.get('recordarme')?.value" color="dark">
     <ion-label>Fecha Recordatorio</ion-label>
-    <input formControlName="fechaRecordatorio" type="date">
+    <input style="color: rgb(95, 95, 95);" formControlName="fechaRecordatorio" type="date">
   </ion-item>
-  <ion-item *ngIf="formulario.get('recordarme')?.value">
+
+  <ion-item *ngIf="formulario.get('recordarme')?.value" color="dark">
     <ion-label>Hora Recordatorio</ion-label>
-    <input formControlName="horaRecordatorio" type="time">
+    <input style="color: rgb(95, 95, 95);" formControlName="horaRecordatorio" type="time">
   </ion-item>
     <div class="mb-3">
       <label class="form-check">

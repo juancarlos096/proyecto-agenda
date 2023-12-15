@@ -14,6 +14,7 @@ export class HoyPage implements OnInit {
   tareas: Tareas[] = [];
   tareaSeleccionada: any;
   mostrarFormulario: boolean = false; // Variable para controlar la visualización del formulario
+  estado: boolean = false; // Tu booleano
 
 
   constructor(private fb: FormBuilder, private tareasService: TareasService) {
@@ -31,13 +32,29 @@ export class HoyPage implements OnInit {
 
   async ngOnInit(): Promise<void> {
     try {
-      this.tareas = await this.tareasService.getTareasDeHoy();
+      const tareasDeHoy = await this.tareasService.getTareasDeHoy();
+
+      // Filtra las tareas para mostrar solo las que tienen fecha límite igual al día actual
+      this.tareas = tareasDeHoy.filter(tarea =>
+        tarea.fechaLimite && this.esFechaActual(tarea.fechaLimite.toDate())
+      );
     } catch (error) {
       console.error('Error al obtener las tareas de hoy en el componente:', error);
       // Manejar el error según sea necesario
     }
   }
+     // Manejar el cambio de la casilla 'recordarme'
+     toggleRecordarme(event: any) {
+      const recordarme = event.target.checked;
   
+      if (!recordarme) {
+        // Si se desmarca 'recordarme', reseteamos los valores de fecha y hora del recordatorio
+        this.formulario.patchValue({
+          fechaRecordatorio: '',
+          horaRecordatorio: ''
+        });
+      }
+    }
   toggleFormulario() {
     this.mostrarFormulario = !this.mostrarFormulario;
   }
@@ -58,34 +75,22 @@ export class HoyPage implements OnInit {
     if (this.formulario.valid) {
       const formData = { ...this.formulario.value };
   
+      // Convierte la fecha y hora ingresadas a objetos Date si son necesarias
+     
       // Convierte la fecha ingresada a un objeto Date si es necesario
       if (formData.fechaLimite) {
         formData.fechaLimite = new Date(formData.fechaLimite);
       }
   
-      try {
-        // Agrega la tarea a la base de datos y obtén el ID generado
-        const tareaConId = await this.tareasService.addTareas(formData);
+      // Agrega la tarea a la base de datos y obtén el ID generado
+      const tareaConId = await this.tareasService.addTareas(formData);
   
-        // Verificar si la tarea tiene un ID válido antes de agregarla a la lista
-        if (tareaConId && tareaConId.id) {
-          // Agregar tarea con ID válido a la lista
-          this.tareas.push(tareaConId);
-  
-          // Obtener nuevamente las tareas de hoy después de agregar la tarea
-          const tareasDeHoy = await this.tareasService.getTareasDeHoy();
-  
-          // Filtrar las tareas por la fecha actual
-          this.tareas = tareasDeHoy.filter(tarea =>
-            tarea.fechaLimite && this.esFechaActual(tarea.fechaLimite.toDate())
-          );
-        } else {
-          console.error('La tarea no tiene un ID válido');
-          // Manejo de error o lógica adicional si la tarea no tiene un ID válido
-        }
-      } catch (error) {
-        console.error('Error al agregar la tarea:', error);
-        // Manejo de error si ocurre un problema al agregar la tarea
+      // Verificar si la tarea tiene un ID válido antes de agregarla a la lista
+      if (tareaConId && tareaConId.id) {
+        this.tareas.push(tareaConId); // Agregar tarea con ID válido a la lista
+      } else {
+        console.error('La tarea no tiene un ID válido');
+        // Manejo de error o lógica adicional si la tarea no tiene un ID válido
       }
     }
   }
@@ -204,52 +209,63 @@ cambiarRecordarme(event: Event) {
   }
 }
 
-
-  async editarTarea(tarea: Tareas) {
-  this.tareaSeleccionada = tarea; // Set the selected task
-  if (this.formulario.valid && this.tareaSeleccionada) {
+async editarTarea(tarea: Tareas) {
+  this.tareaSeleccionada = tarea;
+  if (this.formulario.valid) {
     const formData = { ...this.formulario.value };
-    console.log('Formulario:', formData); // Print form data
-    console.log('Tarea seleccionada:', this.tareaSeleccionada); // Print selected task
-
-    const cambios: Partial<Tareas> = {
-      titulo: formData.titulo,
-      descripcion: formData.descripcion,
-      importante: formData.importante,
-      fechaLimite: formData.fechaLimite,
-      repetir: formData.repetir,
-      recordarme: formData.recordarme
-      // Add other fields you want to update
-    };
 
     try {
-      if (this.tareaSeleccionada) {
-        await this.tareasService.actualizarTarea(this.tareaSeleccionada.id, cambios);
-        console.log('Tarea actualizada correctamente en la base de datos');
-
-        // Update the task locally in the 'tareas' array
-        this.tareas = this.tareas.map(t => {
-          if (t.id === this.tareaSeleccionada.id) {
-            return { ...t, ...cambios };
-          }
-          return t;
-        });
-
-        // Reset the form and selected task after editing
-        this.formulario.reset();
-        this.tareaSeleccionada = null;
-      } else {
-        console.log('No hay tarea seleccionada');
+      // Comprobar si la fecha límite está vacía o es una cadena
+      if (!formData.fechaLimite || typeof formData.fechaLimite === 'string') {
+        formData.fechaLimite = tarea.fechaLimite.toDate(); // Convertir de Timestamp a Date
       }
+
+      // No conviertas la fecha límite a Date, pasa directamente el valor al servicio
+      const cambios: Partial<Tareas> = { ...formData };
+
+      await this.tareasService.actualizarTarea(this.tareaSeleccionada.id, cambios);
+      console.log('Tarea actualizada correctamente en la base de datos');
+
+      // Actualizar la tarea localmente en el 'tareas' array
+      this.tareas = this.tareas.map(t => {
+        if (t.id === this.tareaSeleccionada.id) {
+          return { ...t, ...cambios };
+        }
+        return t;
+      });
+
+      // Resetear el formulario y la tarea seleccionada después de editar
+      this.formulario.reset();
+      this.tareaSeleccionada = null;
+
+      // Recargar la página para ver los cambios reflejados
+      window.location.reload(); // O location.reload();
     } catch (error) {
       console.error('Error al actualizar la tarea en la base de datos:', error);
-      // Error handling if there is a problem updating the task
     }
-  } else {
-    console.log('Formulario no válido o tarea seleccionada no encontrada');
-    console.log('Formulario válido:', this.formulario.valid);
   }
 }
 
+
+
+async cambiarEstado(tareaId: string) {
+  try {
+    const tareaIndex = this.tareas.findIndex(tarea => tarea.id === tareaId);
+    if (tareaIndex !== -1) {
+      const tarea = this.tareas[tareaIndex];
+      this.estado = !tarea.estado; // Cambia el valor del estado localmente
+
+      await this.tareasService.actualizarEstadoTarea(tareaId, { estado: this.estado });
+      console.log('Estado de la tarea actualizado en la base de datos');
+
+      // Filtra la lista de tareas para quitar la tarea con el ID correspondiente si el estado es true
+      if (this.estado) {
+        this.tareas = this.tareas.filter(t => t.id !== tareaId);
+      }
+    }
+  } catch (error) {
+    console.error('Error al actualizar el estado de la tarea en la base de datos:', error);
+  }
+}
 }
 

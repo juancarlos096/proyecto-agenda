@@ -4,7 +4,7 @@
   <div id="container" class="ion-padding">
   
     <ion-fab id="botong" >
-      <ion-fab-button  color="danger" (click)="onClick()">
+      <ion-fab-button  color="tertiary" (click)="onClick()">
         <ion-icon name="logo-google"></ion-icon>
       </ion-fab-button>
     </ion-fab>
@@ -16,11 +16,11 @@
     <form id="form" [formGroup]="formReg" (ngSubmit)="onSubmit()">
       <ion-list id="list">
     
-        <ion-item color="dark">
+        <ion-item color="light">
           <ion-label position="floating">Correo electrónico</ion-label>
           <ion-input formControlName="email" type="email"></ion-input>
         </ion-item>
-        <ion-item color="dark">
+        <ion-item color="light">
           <ion-label position="floating">Contraseña</ion-label>
           <ion-input formControlName="password" type="password"></ion-input>
         </ion-item>

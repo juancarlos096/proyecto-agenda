@@ -4,6 +4,8 @@ import { Injectable } from '@angular/core';
 import { DocumentData, DocumentReference, Firestore, Timestamp, getDocs, updateDoc, doc, getDoc, setDoc, deleteDoc} from '@angular/fire/firestore';
 import { addDoc, collection } from '@angular/fire/firestore'; // Import from @angular/fire/firestore instead of firebase/firestore
 import { Tareas } from '../interfaces/tareas.interface';
+import { BehaviorSubject } from 'rxjs';
+import { AlertController } from '@ionic/angular';
 
 
 @Injectable({
@@ -16,6 +18,7 @@ getTarea(tareaId: any) {
 }
 
 constructor(private firestore: Firestore) {}
+
 
 async addTareas(tareas: Tareas): Promise<Tareas> {
   try {
@@ -116,12 +119,34 @@ async getAllTareas(): Promise<Tareas[]> {
 async actualizarTarea(tareaId: string, cambios: Partial<Tareas>): Promise<void> {
   try {
     const tareaRef = doc(this.firestore, 'tareas', tareaId);
-    await updateDoc(tareaRef, { ...cambios }); // Asegúrate de incluir 'estado' si lo cambias
+    const fechaLimite = cambios.fechaLimite as Timestamp;
+    if (fechaLimite) {
+      cambios.fechaLimite = fechaLimite; // No cambia el formato de fechaLimite
+    }
+    await updateDoc(tareaRef, cambios);
   } catch (error) {
     console.error('Error al actualizar la tarea:', error);
     throw error;
   }
 }
 
-}
 
+async createAlert(tarea: Tareas): Promise<void> {
+  const fechaLimite = tarea.fechaLimite as Timestamp;
+  const fechaLimiteDate = fechaLimite.toDate();
+
+  if (fechaLimiteDate.getDate() === new Date().getDate() &&
+    fechaLimiteDate.getMonth() === new Date().getMonth() &&
+    fechaLimiteDate.getFullYear() === new Date().getFullYear()) {
+    const alertController = new AlertController();
+    const alert = await alertController.create({
+      buttons: [{
+        text: tarea.titulo,
+        handler: () => {
+          // Acción si se pulsa el botón
+        }
+      }],
+    });
+
+    await alert.present();}}
+}

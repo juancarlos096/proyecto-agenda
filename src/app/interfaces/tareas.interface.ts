@@ -1,6 +1,8 @@
 import { Timestamp } from "@angular/fire/firestore";
 
 export interface Tareas {
+  minutoRecordatorio: any;
+  horaRecordatorio: any;
   
   mostrarDetalle: boolean;
    id:string;

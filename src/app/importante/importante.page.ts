@@ -40,7 +40,18 @@ export class ImportantePage implements OnInit {
     }
   }
   
+     // Manejar el cambio de la casilla 'recordarme'
+     toggleRecordarme(event: any) {
+      const recordarme = event.target.checked;
   
+      if (!recordarme) {
+        // Si se desmarca 'recordarme', reseteamos los valores de fecha y hora del recordatorio
+        this.formulario.patchValue({
+          fechaRecordatorio: '',
+          horaRecordatorio: ''
+        });
+      }
+    }
   toggleFormulario() {
     this.mostrarFormulario = !this.mostrarFormulario;
   }
@@ -59,8 +70,10 @@ export class ImportantePage implements OnInit {
   }
   async onSubmit() {
     if (this.formulario.valid) {
-      const formData = { ...this.formulario.value, estado: false }; // Agrega el campo 'estado'
+      const formData = { ...this.formulario.value };
   
+      // Convierte la fecha y hora ingresadas a objetos Date si son necesarias
+     
       // Convierte la fecha ingresada a un objeto Date si es necesario
       if (formData.fechaLimite) {
         formData.fechaLimite = new Date(formData.fechaLimite);
@@ -78,7 +91,6 @@ export class ImportantePage implements OnInit {
       }
     }
   }
-  
   async onDeleteTarea(tareaId: string) {
     try {
       const tareaIndex = this.tareas.findIndex(tarea => tarea.id === tareaId);
@@ -189,44 +201,35 @@ cambiarRecordarme(event: Event) {
 
 
 
-async editarTarea(tarea: Tareas) {
-  this.tareaSeleccionada = tarea; // Establecer la tarea seleccionada
+editarTarea(tarea: Tareas) {
+  this.tareaSeleccionada = tarea;
+  if (this.formulario.valid) {
+    const formData = { ...this.formulario.value };
+    // Comprobar si la fecha límite está vacía
+    if (!formData.fechaLimite) {
+      formData.fechaLimite = new Date();
+    }
 
-  if (this.formulario.valid && this.tareaSeleccionada) {
-    const formData = { ...this.formulario.value, estado: this.tareaSeleccionada.estado }; // Incluye 'estado'
-    let cambios: Partial<Tareas>; // Declarar 'cambios' aquí
-
-    cambios = {
-      titulo: formData.titulo,
-      descripcion: formData.descripcion,
-      importante: formData.importante, // Mantener el estado de importancia
-      fechaLimite: formData.fechaLimite,
-      repetir: formData.repetir,
-      recordarme: formData.recordarme
-      // Añadir otros campos que se deseen actualizar
-    };
+    const cambios: Partial<Tareas> = { ...formData };
 
     try {
-      if (this.tareaSeleccionada) {
-        await this.tareasService.actualizarTarea(this.tareaSeleccionada.id, cambios);
-        console.log('Tarea actualizada correctamente en la base de datos');
+      this.tareasService.actualizarTarea(this.tareaSeleccionada.id, cambios);
+      console.log('Tarea actualizada correctamente en la base de datos');
 
-        // Refrescar la lista de tareas obteniendo las actualizadas con el filtro de tareas importantes
-        this.tareas = await this.tareasService.getTareasImportantes(); // Ajusta el método según tu servicio
+      // Actualizar la tarea localmente en el 'tareas' array
+      this.tareas = this.tareas.map(t => {
+        if (t.id === this.tareaSeleccionada.id) {
+          return { ...t, ...cambios };
+        }
+        return t;
+      });
 
-        // Restablecer el formulario y la tarea seleccionada después de editar
-        this.formulario.reset();
-        this.tareaSeleccionada = null;
-      } else {
-        console.log('No hay tarea seleccionada');
-      }
+      // Reset the form and selected task after editing
+      this.formulario.reset();
+      this.tareaSeleccionada = null;
     } catch (error) {
       console.error('Error al actualizar la tarea en la base de datos:', error);
-      // Manejo de errores si hay problemas al actualizar la tarea
     }
-  } else {
-    console.log('Formulario no válido o tarea seleccionada no encontrada');
-    console.log('Formulario válido:', this.formulario.valid);
   }
 }
 
