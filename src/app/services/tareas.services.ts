@@ -119,16 +119,15 @@ async getAllTareas(): Promise<Tareas[]> {
 async actualizarTarea(tareaId: string, cambios: Partial<Tareas>): Promise<void> {
   try {
     const tareaRef = doc(this.firestore, 'tareas', tareaId);
-    const fechaLimite = cambios.fechaLimite as Timestamp;
-    if (fechaLimite) {
-      cambios.fechaLimite = fechaLimite; // No cambia el formato de fechaLimite
-    }
+
     await updateDoc(tareaRef, cambios);
   } catch (error) {
     console.error('Error al actualizar la tarea:', error);
     throw error;
   }
 }
+
+
 
 
 async createAlert(tarea: Tareas): Promise<void> {

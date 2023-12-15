@@ -11,36 +11,34 @@
  
  
 
-  <ion-list >
-    <ion-card  *ngFor="let tarea of tareas" color="dark" >
-      <ion-card-content >
+  <ion-list>
+    <ion-card *ngFor="let tarea of tareas" color="dark">
+      <ion-card-content>
         <div style="display: flex; align-items: center; justify-content: space-between;">
           <div style="display: flex; align-items: center;">
-           
             <ion-button id="btncompletado" fill="clear" color="danger" (click)="cambiarEstado(tarea.id)">
             </ion-button>
-
             <ion-label id="tiucard" style="margin-right: 10px;">{{ tarea.titulo }}</ion-label>
-
           </div>
           <ion-button fill="clear" (click)="toggleDetalle(tarea)">
             <ion-icon id="iconodeta" name="chevron-down-outline"></ion-icon>
           </ion-button>
         </div>
-        <ion-card *ngIf="tareaSeleccionada" color="dark">
+        <ion-card *ngIf="tarea.mostrarDetalle" color="dark">
+          <!-- Aquí coloca los detalles específicos de la tarea -->
           <ion-card-content color="dark">
-            <p><strong>Título:</strong> {{ tareaSeleccionada.titulo }}</p>
-            <p><strong>Descripción:</strong> {{ tareaSeleccionada.descripcion }}</p>
-            <p><strong>Fecha Límite:</strong> {{ formatFechaLimite(tareaSeleccionada.fechaLimite) }}</p>
-            <p><strong>Importante:</strong> {{ tareaSeleccionada.importante ? 'Sí' : 'No' }}</p>
-            <p><strong>Recordarme:</strong> {{ tareaSeleccionada.recordarme ? 'Sí' : 'No' }}</p>
-            <p><strong>Repetir:</strong> {{ tareaSeleccionada.repetir ? 'Sí' : 'No' }}</p>
-            <ion-button  color="secundary" id="btnedicion2" (click)="onDeleteTarea(tarea.id)"><ion-icon name="trash"></ion-icon></ion-button>
-
+            <p><strong>Título:</strong> {{ tarea.titulo }}</p>
+            <p><strong>Descripción:</strong> {{ tarea.descripcion }}</p>
+            <p><strong>Fecha Límite:</strong> {{ formatFechaLimite(tarea.fechaLimite) }}</p>
+            <p><strong>Importante:</strong> {{ tarea.importante ? 'Sí' : 'No' }}</p>
+            <p><strong>Recordarme:</strong> {{ tarea.recordarme ? 'Sí' : 'No' }}</p>
+            <p><strong>Repetir:</strong> {{ tarea.repetir ? 'Sí' : 'No' }}</p>
+            <ion-button color="secundary" id="btnedicion2" (click)="onDeleteTarea(tarea.id)"><ion-icon name="trash"></ion-icon></ion-button>
           </ion-card-content>
         </ion-card>
       </ion-card-content>
-        </ion-card>
-        </ion-list>
+    </ion-card>
+  </ion-list>
+  
       
 </ion-content>

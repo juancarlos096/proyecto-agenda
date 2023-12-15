@@ -71,26 +71,34 @@ export class ImportantePage implements OnInit {
   async onSubmit() {
     if (this.formulario.valid) {
       const formData = { ...this.formulario.value };
-  
-      // Convierte la fecha y hora ingresadas a objetos Date si son necesarias
-     
+    
+      // Guarda el valor de 'importante' antes de resetear el formulario
+      const importante = this.formulario.get('importante')?.value;
+    
       // Convierte la fecha ingresada a un objeto Date si es necesario
       if (formData.fechaLimite) {
         formData.fechaLimite = new Date(formData.fechaLimite);
       }
-  
+    
       // Agrega la tarea a la base de datos y obtén el ID generado
       const tareaConId = await this.tareasService.addTareas(formData);
-  
+    
       // Verificar si la tarea tiene un ID válido antes de agregarla a la lista
       if (tareaConId && tareaConId.id) {
         this.tareas.push(tareaConId); // Agregar tarea con ID válido a la lista
+        
+        // Restablece los valores del formulario después de agregar la tarea
+        this.formulario.reset();
+        
+        // Asigna el valor 'importante' nuevamente después de resetear el formulario
+        this.formulario.get('importante')?.setValue(importante);
       } else {
         console.error('La tarea no tiene un ID válido');
         // Manejo de error o lógica adicional si la tarea no tiene un ID válido
       }
     }
   }
+  
   async onDeleteTarea(tareaId: string) {
     try {
       const tareaIndex = this.tareas.findIndex(tarea => tarea.id === tareaId);
@@ -152,21 +160,29 @@ export class ImportantePage implements OnInit {
   
 
 
-
-cambiarImportante(event: Event) {
-  const esImportante = (event.target as HTMLInputElement).checked;
-  this.formulario.get('importante')?.setValue(esImportante);
-
-  // Actualizar en la base de datos y la tarea seleccionada
-  if (this.tareaSeleccionada) {
-    this.tareaSeleccionada.importante = esImportante; // Actualiza el valor localmente
-
-    // Actualiza el valor en la base de datos utilizando el servicio
-    this.tareasService.actualizarTarea(this.tareaSeleccionada.id, { importante: esImportante })
-      .then(() => console.log('Importante actualizado correctamente en la base de datos'))
-      .catch(error => console.error('Error al actualizar importante en la base de datos:', error));
+  cambiarImportante(event: Event) {
+    const esImportante = (event.target as HTMLInputElement).checked;
+    this.formulario.get('importante')?.setValue(esImportante);
+  
+    // Actualizar en la base de datos y la tarea seleccionada
+    if (this.tareaSeleccionada) {
+      this.tareaSeleccionada.importante = esImportante; // Actualiza el valor localmente
+  
+      // Actualiza el valor en la base de datos utilizando el servicio
+      this.tareasService.actualizarTarea(this.tareaSeleccionada.id, { importante: esImportante })
+        .then(async () => {
+          console.log('Importante actualizado correctamente en la base de datos');
+  
+          // Si se desmarca como importante, elimina la tarea de la lista this.tareas
+          if (!esImportante) {
+            this.tareas = this.tareas.filter(tarea => tarea.id !== this.tareaSeleccionada.id);
+          }
+        })
+        .catch(error => console.error('Error al actualizar importante en la base de datos:', error));
+    }
   }
-}
+  
+  
 
 formatFechaLimite(fechaLimite: any): string {
   if (fechaLimite && fechaLimite.toDate) {
@@ -201,10 +217,12 @@ cambiarRecordarme(event: Event) {
 
 
 
-editarTarea(tarea: Tareas) {
+async editarTarea(tarea: Tareas) {
   this.tareaSeleccionada = tarea;
+
   if (this.formulario.valid) {
     const formData = { ...this.formulario.value };
+
     // Comprobar si la fecha límite está vacía
     if (!formData.fechaLimite) {
       formData.fechaLimite = new Date();
@@ -213,7 +231,7 @@ editarTarea(tarea: Tareas) {
     const cambios: Partial<Tareas> = { ...formData };
 
     try {
-      this.tareasService.actualizarTarea(this.tareaSeleccionada.id, cambios);
+      await this.tareasService.actualizarTarea(this.tareaSeleccionada.id, cambios);
       console.log('Tarea actualizada correctamente en la base de datos');
 
       // Actualizar la tarea localmente en el 'tareas' array
@@ -227,6 +245,9 @@ editarTarea(tarea: Tareas) {
       // Reset the form and selected task after editing
       this.formulario.reset();
       this.tareaSeleccionada = null;
+
+      // Reload the page to reflect the changes
+      window.location.reload();
     } catch (error) {
       console.error('Error al actualizar la tarea en la base de datos:', error);
     }
@@ -243,6 +264,10 @@ async obtenerTareasMostradas() {
 
 async cambiarEstado(tareaId: string) {
   try {
+    if (tareaId === null) {
+      return;
+    }
+
     const tareaIndex = this.tareas.findIndex(tarea => tarea.id === tareaId);
     if (tareaIndex !== -1) {
       const tarea = this.tareas[tareaIndex];
@@ -269,5 +294,4 @@ actualizarTareasMostradas(tareaId: string) {
       this.tareasMostradas.splice(tareaIndex, 1);
     }
   }
-}
-}
+}}

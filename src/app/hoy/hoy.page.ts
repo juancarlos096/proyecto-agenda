@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { Tareas } from '../interfaces/tareas.interface';
 import { TareasService } from '../services/tareas.services';
+import { Timestamp } from '@angular/fire/firestore';
 
 
 @Component({
@@ -75,8 +76,9 @@ export class HoyPage implements OnInit {
     if (this.formulario.valid) {
       const formData = { ...this.formulario.value };
   
-      // Convierte la fecha y hora ingresadas a objetos Date si son necesarias
-     
+      // Guardar la fecha límite antes de agregar la tarea
+      const fechaLimiteActual = formData.fechaLimite; // Guardar la fecha límite actual
+  
       // Convierte la fecha ingresada a un objeto Date si es necesario
       if (formData.fechaLimite) {
         formData.fechaLimite = new Date(formData.fechaLimite);
@@ -88,12 +90,17 @@ export class HoyPage implements OnInit {
       // Verificar si la tarea tiene un ID válido antes de agregarla a la lista
       if (tareaConId && tareaConId.id) {
         this.tareas.push(tareaConId); // Agregar tarea con ID válido a la lista
+  
+        // Restablecer solo el valor de 'fechaLimite' en el formulario y borrar el resto
+        this.formulario.reset({ fechaLimite: fechaLimiteActual });
       } else {
         console.error('La tarea no tiene un ID válido');
         // Manejo de error o lógica adicional si la tarea no tiene un ID válido
       }
     }
   }
+  
+  
   
   // Función para verificar si una fecha es la fecha actual
   esFechaActual(fecha: Date): boolean {
@@ -211,37 +218,36 @@ cambiarRecordarme(event: Event) {
 
 async editarTarea(tarea: Tareas) {
   this.tareaSeleccionada = tarea;
+
   if (this.formulario.valid) {
     const formData = { ...this.formulario.value };
 
+    // Obtener el valor actual de 'fechaLimite' de la tarea seleccionada
+    const fechaLimiteActual = this.tareaSeleccionada.fechaLimite;
+
+    // ... (otras operaciones previas)
+
+    const cambios: Partial<Tareas> = { ...formData };
+
     try {
-      // Comprobar si la fecha límite está vacía o es una cadena
-      if (!formData.fechaLimite || typeof formData.fechaLimite === 'string') {
-        formData.fechaLimite = tarea.fechaLimite.toDate(); // Convertir de Timestamp a Date
+      // Verificar y restaurar el valor original de 'fechaLimite' si es necesario
+      if (fechaLimiteActual) {
+        cambios.fechaLimite = fechaLimiteActual;
       }
 
-      // No conviertas la fecha límite a Date, pasa directamente el valor al servicio
-      const cambios: Partial<Tareas> = { ...formData };
+      // Realizar la actualización específica solo para 'importante'
+      const cambiosImportante = { importante: formData.importante };
 
-      await this.tareasService.actualizarTarea(this.tareaSeleccionada.id, cambios);
-      console.log('Tarea actualizada correctamente en la base de datos');
+      await this.tareasService.actualizarTarea(this.tareaSeleccionada.id, cambiosImportante);
+      console.log('Campo "importante" actualizado correctamente en la base de datos');
 
-      // Actualizar la tarea localmente en el 'tareas' array
-      this.tareas = this.tareas.map(t => {
-        if (t.id === this.tareaSeleccionada.id) {
-          return { ...t, ...cambios };
-        }
-        return t;
-      });
+      // Actualizar localmente y recargar la página
+      // Agrega aquí el código para actualizar los datos localmente si es necesario
 
-      // Resetear el formulario y la tarea seleccionada después de editar
-      this.formulario.reset();
-      this.tareaSeleccionada = null;
-
-      // Recargar la página para ver los cambios reflejados
-      window.location.reload(); // O location.reload();
+      // Recargar la página para reflejar los cambios
+      window.location.reload();
     } catch (error) {
-      console.error('Error al actualizar la tarea en la base de datos:', error);
+      console.error('Error al actualizar el campo "importante" en la base de datos:', error);
     }
   }
 }

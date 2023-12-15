@@ -107,3 +107,29 @@ ion-content{
   text-align: center;
   margin-top: 10px; /* Ajusta el espacio entre el ícono y el título */
 }
+#usuarioContainer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end; /* Alinea el contenido hacia el extremo derecho */
+  width: 100%; /* Utiliza todo el espacio disponible del encabezado */
+  max-width: calc(100% - 60px); /* Ancho máximo del contenedor del nombre, restando el ancho del botón de deslogueo */
+}
+
+#logoutButton {
+  width: 60px; /* Ancho fijo para el botón de deslogueo */
+}
+
+
+#tb {
+  display: flex;
+  justify-content: space-between; /* Distribuye los elementos a los extremos */
+  align-items: center;
+}
+
+#enlacePerfil {
+  text-decoration: none;
+  color: white;
+  font-size: 11px;
+  margin-left: 0 px; /* Espacio entre el nombre de usuario y el botón de deslogueo */
+}
+

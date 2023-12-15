@@ -39,12 +39,10 @@ export class HistorialPage implements OnInit {
     }
   }
 
-  toggleDetalle(tarea: any) {
-    // Al hacer clic en el botón, se cambia la tarea seleccionada para mostrar sus detalles
-    this.tareaSeleccionada = this.tareaSeleccionada === tarea ? null : tarea;
+  toggleDetalle(tarea: Tareas) {
+    tarea.mostrarDetalle = !tarea.mostrarDetalle;
   }
-
-
+  
  
   
   async onSubmit() {

@@ -73,8 +73,6 @@ export class TareasPage implements OnInit {
     if (this.formulario.valid) {
       const formData = { ...this.formulario.value };
   
-      // Convierte la fecha y hora ingresadas a objetos Date si son necesarias
-     
       // Convierte la fecha ingresada a un objeto Date si es necesario
       if (formData.fechaLimite) {
         formData.fechaLimite = new Date(formData.fechaLimite);
@@ -86,12 +84,16 @@ export class TareasPage implements OnInit {
       // Verificar si la tarea tiene un ID válido antes de agregarla a la lista
       if (tareaConId && tareaConId.id) {
         this.tareas.push(tareaConId); // Agregar tarea con ID válido a la lista
+  
+        // Restablecer los valores del formulario después de agregar la tarea
+        this.formulario.reset();
       } else {
         console.error('La tarea no tiene un ID válido');
         // Manejo de error o lógica adicional si la tarea no tiene un ID válido
       }
     }
   }
+  
   async onDeleteTarea(tareaId: string) {
     try {
       const tareaIndex = this.tareas.findIndex(tarea => tarea.id === tareaId);
@@ -197,18 +199,18 @@ cambiarRecordarme(event: Event) {
 
 async editarTarea(tarea: Tareas) {
   this.tareaSeleccionada = tarea;
+
   if (this.formulario.valid) {
     const formData = { ...this.formulario.value };
-    
+
+    // Comprobar si la fecha límite está vacía
+    if (!formData.fechaLimite) {
+      formData.fechaLimite = new Date();
+    }
+
+    const cambios: Partial<Tareas> = { ...formData };
+
     try {
-      // Comprobar si la fecha límite está vacía
-      if (!formData.fechaLimite) {
-        formData.fechaLimite = new Date();
-      }
-
-      // No conviertas la fecha límite a Date, pasa directamente el valor al servicio
-      const cambios: Partial<Tareas> = { ...formData };
-
       await this.tareasService.actualizarTarea(this.tareaSeleccionada.id, cambios);
       console.log('Tarea actualizada correctamente en la base de datos');
 
@@ -223,6 +225,9 @@ async editarTarea(tarea: Tareas) {
       // Reset the form and selected task after editing
       this.formulario.reset();
       this.tareaSeleccionada = null;
+
+      // Reload the page to reflect the changes
+      window.location.reload();
     } catch (error) {
       console.error('Error al actualizar la tarea en la base de datos:', error);
     }

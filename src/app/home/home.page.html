@@ -1,17 +1,20 @@
 <ion-header [translucent]="true">
   <ion-toolbar id="tb">
-    <ion-title>
-      <div id="usuario">
-       <a id="enlacePerfil" >
-          <p *ngIf="correoUsuario">{{ correoUsuario }}</p>
-        </a>
-        <ion-buttons>
-          <ion-button  (click)="logout()"><ion-icon id="ilogout" name="log-out-outline"></ion-icon></ion-button>
-        </ion-buttons>
-      </div>
+    <!-- Contenedor para el nombre de usuario -->
+    <ion-title id="usuarioContainer" size="medium">
+      <a id="enlacePerfil" *ngIf="correoUsuario">{{ correoUsuario }}</a>
     </ion-title>
+
+    <!-- Botón de deslogueo -->
+    <ion-buttons slot="end">
+      <ion-button (click)="logout()" id="logoutButton">
+        <ion-icon id="ilogout" name="log-out-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
+
+
   
 <ion-content display="flex" id="contenedor" color="secundary">
   <div id="klk">
